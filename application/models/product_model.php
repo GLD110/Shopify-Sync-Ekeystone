@@ -157,7 +157,7 @@ class Product_model extends Master_model
           'handle' => $product->handle,
           'price' => $variant->price,
           'position' => $variant->position,
-          'updated_at' => date( $this->config->item('CONST_DATE_FORMAT'), strtotime($variant->updated_at)),
+          'updated_at' => $variant->updated_at,
           'is_exist' => 1,
           'qty' => $variant->inventory_quantity,
           'image_url' => $image_url,
@@ -207,6 +207,22 @@ class Product_model extends Master_model
       foreach( $query->result() as $row )
       {
         $return = $row->variant_id;
+      }
+
+      return $return;
+    }
+
+    // Get variant from SKU
+    public function getVariantFromSku( $sku )
+    {
+      $return = '';
+
+      $query = $this->getList( array( 'sku' => $sku ) );
+
+      if( $query->num_rows() > 0 )
+      foreach( $query->result() as $row )
+      {
+        $return = $row;
       }
 
       return $return;
