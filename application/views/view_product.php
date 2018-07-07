@@ -68,7 +68,7 @@ tr.warning td.new-date{ font-weight:bold; color:green; }
 
                 <button type = "submit" class = "btn btn-info" ><i class="glyphicon glyphicon-search" ></i></button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <button type = "button" class = "btn btn-warning btn_sync" >Sync products</button>
+                <button type = "button" class = "hidden btn btn-warning btn_sync" >Sync products</button>
 
                 <input type = hidden id = 'sel_sort_field' name = 'sel_sort_field' value = '<?PHP echo $sel_sort_field;?>' >
                 <input type = hidden id = 'sel_sort_direction' name = 'sel_sort_direction' value = '<?PHP echo $sel_sort_direction;?>' >

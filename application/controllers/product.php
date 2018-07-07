@@ -222,7 +222,10 @@ class Product extends MY_Controller {
           $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
         }
      }
-     //$this->sync();
+
+     $this->load->model( 'Log_model' );
+     $this->Log_model->add('CronJob', 'GetInventoryQuantityUpdates', '---', $shop);
+
   }
 
   public function sync( $shop = '', $page = 1 )
