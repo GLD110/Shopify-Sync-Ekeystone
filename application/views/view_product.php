@@ -98,7 +98,7 @@ tr.warning td.new-date{ font-weight:bold; color:green; }
                 <tr class = "text-center">
                     <th class = "text-center" >No.</th>
                     <th class = "text-center" style = "width:20%" >SKU</th>
-                    <th class = "text-center" style = "width:20%" ><a href = "javascript:sort('title');" >Title</a></th>
+                    <th class = "text-center" style = "width:20%" >Title</th>
                     <th class = "text-center" style = "width:30%" >Description</th>
                     <th class = "text-center" style = "width:10%; display:none;" >Categories</th>
                     <th class = "text-center" >Price</th>

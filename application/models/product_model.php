@@ -62,8 +62,8 @@ class Product_model extends Master_model
         }
 
         // Sort
-        if( isset( $arrCondition['sort'] ) ) $this->db->order_by( $arrCondition['sort'] );
-        $this->db->order_by( 'product_id', 'DESC' );
+        //if( isset( $arrCondition['sort'] ) ) $this->db->order_by( $arrCondition['sort'] );
+        $this->db->order_by( 'updated_at', 'DESC' );
 
         // Limit
         if( isset( $arrCondition['page_number'] ) )
