@@ -77,8 +77,7 @@ class Product extends MY_Controller {
 
   Public function GetInventoryQuantityUpdates()
   {
-    /*$sdk_key = $this->config->item('DEVELOPMENT_SDK_KEY');
-    //$sdk_key = $this->config->item('PRODUCTION_SDK_KEY');
+    $sdk_key = $this->config->item('EKEYSTONE_SDK_KEY');
     $user_num = $this->config->item('FULL_ACCOUNT_NUM');
 
     $url = "http://order.ekeystone.com/wselectronicorder/electronicorder.asmx";
@@ -111,9 +110,9 @@ class Product extends MY_Controller {
      curl_setopt($soap_do, CURLOPT_POST,           true );
      curl_setopt($soap_do, CURLOPT_POSTFIELDS,     $soap_request);
      curl_setopt($soap_do, CURLOPT_HTTPHEADER,     $header);
-     $result = curl_exec($soap_do);*/
+     $result = curl_exec($soap_do);
 
-     $result = '<?xml version="1.0" encoding="UTF-8"?>
+     /*$result = '<?xml version="1.0" encoding="UTF-8"?>
                 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                    <soap:Body>
                       <GetInventoryQuantityUpdatesResponse xmlns="http://eKeystone.com">
@@ -178,12 +177,14 @@ class Product extends MY_Controller {
                          </GetInventoryQuantityUpdatesResult>
                       </GetInventoryQuantityUpdatesResponse>
                    </soap:Body>
-                </soap:Envelope>';
+                </soap:Envelope>';*/
 
      $xmlString = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $result);
      $xml = SimpleXML_Load_String($xmlString);
      $xml = new SimpleXMLElement($xml->asXML());
      $array = $xml->soapBody->GetInventoryQuantityUpdatesResponse->GetInventoryQuantityUpdatesResult->xsschema->xselement->xscomplexType->xschoice->xselement->xscomplexType->xssequence;
+
+     //var_dump($array);exit;
 
      if(empty($shop))
       $shop = $this->_default_store;
