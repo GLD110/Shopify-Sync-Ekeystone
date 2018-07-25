@@ -144,6 +144,92 @@ class Order extends MY_Controller {
     echo 'success';
   }
 
+  Public function GetOrderHistory($PONumber)
+  {
+    $sdk_key = $this->config->item('EKEYSTONE_SDK_KEY');
+    $user_num = $this->config->item('FULL_ACCOUNT_NUM');
+
+    $url = "http://order.ekeystone.com/wselectronicorder/electronicorder.asmx";
+     $soap_request = '<?xml version="1.0" encoding="utf-8"?>
+     <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+     <soap:Body>
+     <GetOrderHistory xmlns="http://eKeystone.com">
+       <Key>' . $sdk_key . '</Key>
+       <FullAccountNo>' . $user_num . '</FullAccountNo>
+       <PONumber>' . $PONumber . '</PONumber>
+       <FromDate>' . '' . '</FromDate>
+       <ToDate>' . '' . '</ToDate>
+     </GetOrderHistory>
+     </soap:Body>
+     </soap:Envelope>';
+
+     $header = array(
+         "POST /wselectronicorder/electronicorder.asmx HTTP/1.1",
+         "Host: order.ekeystone.com",
+         "Content-type: text/xml;charset=\"utf-8\"",
+         "Accept: text/xml",
+         "Cache-Control: no-cache",
+         "Pragma: no-cache",
+         "SOAPAction: \"http://eKeystone.com/GetOrderHistory\"",
+         "Content-length: ".strlen($soap_request),
+     );
+
+     $soap_do = curl_init();
+     curl_setopt($soap_do, CURLOPT_URL,            $url );
+     curl_setopt($soap_do, CURLOPT_RETURNTRANSFER, true );
+     curl_setopt($soap_do, CURLOPT_POST,           true );
+     curl_setopt($soap_do, CURLOPT_POSTFIELDS,     $soap_request);
+     curl_setopt($soap_do, CURLOPT_HTTPHEADER,     $header);
+     $result = curl_exec($soap_do);
+
+     $xmlString = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $result);
+     $xml = SimpleXML_Load_String($xmlString);
+     $xml = new SimpleXMLElement($xml->asXML());
+     $array = $xml->soapBody->GetOrderHistoryResponse->GetOrderHistoryResult->diffgrdiffgram;
+
+     //var_dump($array->NewDataSet->Table1);exit;
+
+     if(empty($shop))
+      $shop = $this->_default_store;
+
+     $this->load->model( 'Shopify_model' );
+     $this->Shopify_model->setStore( $shop, $this->_arrStoreList[$shop]->app_id, $this->_arrStoreList[$shop]->app_secret );
+
+     if( $array->NewDataSet->Table1->EKSTAT == 'RCV ORD'){
+       $action = 'orders' . $PONumber . '/fulfillments.json';
+       $fulfillments_array = array(
+            'fulfillment' => array(
+                'location_id' => '',
+                'tracking_number' => $array->NewDataSet->Table1->EKTRCK
+            )
+        );
+        // Retrive Data from Shop
+        $fulfillment_Info = $this->Shopify_model->accessAPI( $action, $fulfillments_array, 'POST' );
+      }
+
+      if( $array->NewDataSet->Table1->EKSTAT == 'PACKAGE' || $array->NewDataSet->Table1->EKSTAT == 'PICK' || $array->NewDataSet->Table1->EKSTAT == 'ORDER'){
+        $action = 'orders' . $PONumber . '/fulfillments/' . $fulfillment_id . '.json';
+        $fulfillments_array = array(
+             'fulfillment' => array(
+                 'id' => $fulfillment_id,
+                 'tracking_number' => $array->NewDataSet->Table1->EKTRCK
+             )
+         );
+         // Retrive Data from Shop
+         $fulfillment_Info = $this->Shopify_model->accessAPI( $action, $fulfillments_array, 'PUT' );
+       }
+
+      if($array->NewDataSet->Table1->EKSTAT == 'INVOICE') {
+        $action = 'orders' . $PONumber . '/fulfillments/' . $fulfillment_id . '/complete.json';
+        // Retrive Data from Shop
+        $fulfillment_Info = $this->Shopify_model->accessAPI( $action, $fulfillments_array, 'POST' );
+      }
+
+     $this->load->model( 'Log_model' );
+     $this->Log_model->add('CronJob', 'GetOrderHistory', $PONumber, $shop);
+
+  }
+
   Public function ShipOrderDropShip(
     $FullPartNo, $Quant,
     $DropShipFirstName, $DropShipMiddleInitial, $DropShipLastName,
@@ -155,7 +241,6 @@ class Order extends MY_Controller {
     $sdk_key = $this->config->item('EKEYSTONE_SDK_KEY');
     $user_num = $this->config->item('FULL_ACCOUNT_NUM');
     $variant_info = $this->Product_model->getVariantFromSku( $FullPartNo );
-    var_dump($variant_info);exit;
     $FullPartNo = $variant_info->VCPN;
 
     $url = "http://order.ekeystone.com/wselectronicorder/electronicorder.asmx";
@@ -205,8 +290,6 @@ class Order extends MY_Controller {
      curl_setopt($soap_do, CURLOPT_HTTPHEADER,     $header);
      $result = curl_exec($soap_do);
 
-     var_dump($result);exit;
-
      /*$result = '<?xml version="1.0" encoding="UTF-8"?>
                 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                    <soap:Body>
@@ -221,11 +304,13 @@ class Order extends MY_Controller {
      $xml = new SimpleXMLElement($xml->asXML());
      $array = $xml->soapBody->ShipOrderDropShipResponse->ShipOrderDropShipResult;
 
-     //var_dump($array);exit;
-     echo $array;
+     //var_dump((string)$array);exit;
+     //echo $array;
 
      $this->load->model( 'Log_model' );
-     $this->Log_model->add('CronJob', 'ShipOrderDropShip', '$PONumber', $array);
+     $this->Log_model->add('CronJob', 'ShipOrderDropShip', $PONumber, (string)$array);
+
+     return (string)$array;
 
   }
 }

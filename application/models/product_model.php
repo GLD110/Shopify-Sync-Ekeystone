@@ -213,7 +213,7 @@ class Product_model extends Master_model
     {
       $returnObj = '';
 
-      $query = $this->getList( array( 'variant_id' => $variant_id ) );
+      $query = parent::getList('variant_id = \'' . $variant->id . '\'' );
 
       if( $query->num_rows() > 0 )
       foreach( $query->result() as $row )
@@ -230,7 +230,7 @@ class Product_model extends Master_model
     {
       $return = '';
 
-      $query = $this->getList( array( 'sku' => $sku ) );
+      $query = parent::getList( 'sku = \'' . $sku . '\'' . ' AND VCPN != \'' . '' . '\'');
 
       if( $query->num_rows() > 0 )
       foreach( $query->result() as $row )
@@ -246,7 +246,7 @@ class Product_model extends Master_model
     {
       $return = '';
 
-      $query = $this->getList( array( 'sku' => $sku ) );
+      $query = parent::getList( 'sku = \'' . $sku . '\'' . ' AND VCPN != \'' . '' . '\'');
 
       if( $query->num_rows() > 0 )
       foreach( $query->result() as $row )
@@ -262,7 +262,7 @@ class Product_model extends Master_model
     {
       $return = '';
 
-      $query = $this->getList( array( 'VCPN' => $VCPN ) );
+      $query = parent::getList( 'VCPN = \'' . $VCPN . '\'' );
 
       if( $query->num_rows() > 0 )
       foreach( $query->result() as $row )
@@ -275,7 +275,7 @@ class Product_model extends Master_model
 
     //Update VCPN per a days
     public function updateQtyandVCPN($sku, $qty, $VCPN){
-      $query = $this->getList( array( 'sku' => $sku ) );
+      $query = parent::getList( 'sku = \'' . $sku . '\'');
       $data = array( 'qty'=>$qty, 'VCPN'=>$VCPN );
       if($query->num_rows() > 0)
       {

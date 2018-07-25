@@ -73,7 +73,7 @@ class Product extends MY_Controller {
         case 'item_per_square' : $data['item_per_square'] = str_replace( ',', '.', $this->input->post('value') ); break;
     }
     $this->Product_model->update( $pk, $data );
-  }  
+  }
 
   Public function GetInventoryQuantityFull()
   {
@@ -115,6 +115,8 @@ class Product extends MY_Controller {
      $xml = new SimpleXMLElement($xml->asXML());
      $array = $xml->soapBody->GetInventoryQuantityFullResponse->GetInventoryQuantityFullResult->diffgrdiffgram->InventoryFull;
 
+     //printf($result);exit;
+
      if(empty($shop))
       $shop = $this->_default_store;
 
@@ -125,36 +127,40 @@ class Product extends MY_Controller {
      $this->Shopify_model->setStore( $shop, $this->_arrStoreList[$shop]->app_id, $this->_arrStoreList[$shop]->app_secret );
      $action = 'products.json';
 
-     foreach($array->dtPartsData as $a)
-     {
-        $sku = (string)$a->ManufacturerProductNo;
-        $totalqty = (string)$a->TotalQty;
-        $variant_info = $this->Product_model->getVariantFromSku($sku);
-        $this->Product_model->updateQtyandVCPN($sku, $totalqty, (string)$a->VCPN);
-        if($variant_info){
-        $product_id = $variant_info->product_id;
-        $variant_id = $variant_info->variant_id;
-        $products_array = array(
-            'product' => array(
-                'id' => $product_id,
-                'variants' => array(
-                  array(
-                    "id" => $variant_id,
-                    "inventory_quantity" => $totalqty,
-                    "inventory_management" => 'shopify'
+     if($array){
+       foreach($array->dtPartsData as $a)
+       {
+          $sku = (string)$a->ManufacturerProductNo;
+          $totalqty = (string)$a->TotalQty;
+          $variant_info = $this->Product_model->getVariantFromSku($sku);
+          $this->Product_model->updateQtyandVCPN($sku, $totalqty, (string)$a->VCPN);
+          if($variant_info){
+          $product_id = $variant_info->product_id;
+          $variant_id = $variant_info->variant_id;
+          $products_array = array(
+              'product' => array(
+                  'id' => $product_id,
+                  'variants' => array(
+                    array(
+                      "id" => $variant_id,
+                      "inventory_quantity" => $totalqty,
+                      "inventory_management" => 'shopify'
+                    )
                   )
-                )
-            )
-        );
+              )
+          );
 
-        // Retrive Data from Shop
-        $action = 'products/' . $product_id . '.json';
-        $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
-      }
+          // Retrive Data from Shop
+          $action = 'products/' . $product_id . '.json';
+          $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
+        }
+       }
      }
 
      $this->load->model( 'Log_model' );
      $this->Log_model->add('CronJob', 'GetInventoryQuantityFull', '---', $shop);
+
+     return 'success';
 
   }
 
@@ -192,6 +198,8 @@ class Product extends MY_Controller {
      curl_setopt($soap_do, CURLOPT_POSTFIELDS,     $soap_request);
      curl_setopt($soap_do, CURLOPT_HTTPHEADER,     $header);
      $result = curl_exec($soap_do);
+
+     //var_dump($result);exit;
 
      /*$result = '<?xml version="1.0" encoding="UTF-8"?>
                 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

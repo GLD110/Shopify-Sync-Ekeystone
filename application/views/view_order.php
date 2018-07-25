@@ -1,7 +1,7 @@
 <?php
 $config['base_url'] = base_url( 'order/manage/' );
 $config['total_rows'] = $total_count;
-$config['per_page'] = $sel_page_size; 
+$config['per_page'] = $sel_page_size;
 $config['num_links'] = 4;
 
 $config['first_link'] = 'First';
@@ -26,7 +26,7 @@ $config['num_tag_close'] = '</li>';
 $config['cur_tag_open'] = '<li class="paginate_button active " disabled><a href = "#" disabled>';
 $config['cur_tag_close'] = '</a></li>';
 
-$this->pagination->initialize($config); 
+$this->pagination->initialize($config);
 
 $summary = 'Showing ' . ( $page + 1 ) . ' to ' . ( $page + $sel_page_size > $total_count ? $total_count : $page + $sel_page_size ) . ' of ' . $total_count . ' orders';
 
@@ -71,26 +71,26 @@ $summary = 'Showing ' . ( $page + 1 ) . ' to ' . ( $page + $sel_page_size > $tot
                     <input type="text" class="form-control" id="rangepicker4" name = "sel_created_at" value="<?PHP echo $sel_created_at; ?>"/>
                 </div>&nbsp;&nbsp;
                 <!-- /.input group -->
-              </div>        
+              </div>
               <button type = "submit" class = "btn btn-info" ><i class="glyphicon glyphicon-search" ></i></button>
-              
+
               <input type = hidden id = 'sel_sort_field' name = 'sel_sort_field' value = '<?PHP echo $sel_sort_field;?>' >
               <input type = hidden id = 'sel_sort_direction' name = 'sel_sort_direction' value = '<?PHP echo $sel_sort_direction;?>' >
           </form>
-          &nbsp;&nbsp;|&nbsp;&nbsp;
+          <!-- &nbsp;&nbsp;|&nbsp;&nbsp; -->
           <form style="display: inline" class = 'form-inline' id = 'frmProcess' action="<?php echo base_url('order/download') ?>" method = "post" target = "new" >
-              <button type = "button" class = "btn btn-info btn_sync" >Sync Orders</button>
+              <button type = "button" class = "hide btn btn-info btn_sync" >Sync Orders</button>
               <input type = 'hidden' id = 'sel_ids' name = 'sel_ids' >
           </form>
           </div>
           <div id = 'ret' class="col-md-12 column" ></div>
         </div><!-- /.box-header -->
-        
+
         <!-- Pagenation -->
         <div class = 'box-body' style = "padding:0px 10px;">
             <div class="col-sm-5">
                 <div class="dataTables_info" id="example1_info" role="status" aria-live="polite">
-                    <?php echo $summary ; ?>    
+                    <?php echo $summary ; ?>
                 </div>
             </div>
             <div class="col-sm-7">
@@ -111,16 +111,17 @@ $summary = 'Showing ' . ( $page + 1 ) . ' to ' . ( $page + $sel_page_size > $tot
                     <th class = "text-center" >No.</th>
                     <th class = "text-center" ><a href = "javascript:sort('order_name');" >Order Name</a></th>
                     <th class = "text-center" ><a href = "javascript:sort('order_id');" >Order ID</a></th>
-                    <th class = "text-center" ><a href = "javascript:sort('product_name');" >Product Name</a></th>              
+                    <th class = "text-center" ><a href = "javascript:sort('product_name');" >Product Name</a></th>
                     <th class = "text-center" ><a href = "javascript:sort('customer_name');" >Customer</a></th>
                     <th class = "text-center" ><a href = "javascript:sort('email');" >email</a></th>
-                    <th class = "text-center" >Total</th>
+                    <th class = "text-center" >Price</th>
                     <th class = "text-center" ><a href = "javascript:sort('num_products');" >Products</a></th>
                     <th class = "text-center" ><a href = "javascript:sort('country');" >Country</a></th>
-                    <th class = "text-center" >Fulfillment Status</th>
                     <th class = "text-center" ><a href = "javascript:sort('created_at');" >Checkout Date</a></th>
-                    <th class = "text-center" ><a href = "javascript:sort('financial_status');" >Financial Status</a></th>      
+                    <th class = "text-center" ><a href = "javascript:sort('financial_status');" >Financial Status</a></th>
                     <th class = "text-center" ><a href = "javascript:sort('sku');" >SKU</a></th>
+                    <th class = "text-center" >Ekeystone Feedback</th>
+                    <th class = "text-center" >Fulfillment Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -131,7 +132,7 @@ $summary = 'Showing ' . ( $page + 1 ) . ' to ' . ( $page + $sel_page_size > $tot
                  <tr class="tbl_view text-center" >
                     <td>
                         <input type = 'checkbox' value = '<?PHP echo $row->id; ?>' class = 'chk_order' >
-                    </td>                
+                    </td>
                     <td>
                         <?php echo $sno; ?>
                     </td>
@@ -143,10 +144,11 @@ $summary = 'Showing ' . ( $page + 1 ) . ' to ' . ( $page + $sel_page_size > $tot
                     <td>$<?=$row->amount ?></td>
                     <td><?=$row->num_products ?></td>
                     <td><?=$row->country ?></td>
-                    <td><?=$row->fulfillment_status ?></td>
                     <td><?=$row->created_at ?></td>
                     <td><?=$row->financial_status ?></td>
                     <td><?=$row->sku ?></td>
+                    <td><?=$row->ekey_feedback ?></td>
+                    <td><?=$row->fulfillment_status ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -155,12 +157,12 @@ $summary = 'Showing ' . ( $page + 1 ) . ' to ' . ( $page + $sel_page_size > $tot
       </div><!-- /.box -->
     </div><!-- /.col -->
   </div><!-- /.row -->
-  
+
   <!-- Pagenation -->
   <div class="row">
     <div class="col-sm-5">
         <div class="dataTables_info" id="example1_info" role="status" aria-live="polite">
-            <?php echo $summary ; ?>    
+            <?php echo $summary ; ?>
         </div>
     </div>
     <div class="col-sm-7">
@@ -170,7 +172,7 @@ $summary = 'Showing ' . ( $page + 1 ) . ' to ' . ( $page + $sel_page_size > $tot
             </ul>
       </div>
     </div>
-  </div><!-- /.row -->  
+  </div><!-- /.row -->
 
 <script>
 var sel_product;
@@ -180,13 +182,13 @@ function collect_sels()
 {
     // Clear
     $('#sel_ids').val('');
-    
+
     // Collect vals for variants
     $('.chk_order').each(function(){
        if( $(this).is(':checked') )
        {
            $('#sel_ids').val( $('#sel_ids').val() + '_' + $(this).val() );
-       } 
+       }
     });
 }
 
@@ -194,7 +196,7 @@ $(document).ready(function(){
 
   // Checkbox selection
   $('#chk_all').click( function(){
-    if( $(this).is(':checked')) 
+    if( $(this).is(':checked'))
     {
       $('.chk_order').prop('checked', true );
     }
@@ -203,7 +205,7 @@ $(document).ready(function(){
       $('.chk_order').prop('checked', false );
     }
   });
-    
+
   // ********************************* //
 
   // Map Button Config
@@ -221,7 +223,7 @@ $(document).ready(function(){
     var url = '<?php echo base_url('order/download') ?>/' + $('#sel_shop').val() + '/0/' + $('#sel_rate').val() + '/' + $('#sel_ids').val();
     window.location = url;
   });
-   
+
   // Sync Button Config
   $('.btn_sync').btn_init(
     'sync',
@@ -242,7 +244,7 @@ $(document).ready(function(){
       if( data == 'success' )
       {
         $('.btn_sync').btn_action( 'sync', 'success' );
-        
+
         setTimeout( function(){
                 window.location.reload();
             }, 1000
@@ -250,13 +252,13 @@ $(document).ready(function(){
       }
       else
       {
-        $('.btn_sync').btn_action( 'sync', 'error' );  
+        $('.btn_sync').btn_action( 'sync', 'error' );
       }
     });
-    
+
     event.preventDefault();
-  }); 
-  
+  });
+
   $('#sel_shop').change( function(){
     $('#frmSearch').submit();
   });
@@ -266,7 +268,7 @@ function sort( field )
 {
   $('#sel_sort_field').val( field );
   $('#sel_sort_direction').val( $('#sel_sort_direction').val() == 'ASC' ? 'DESC' : 'ASC' );
-  
+
   $('#frmSearch').submit();
 }
 
