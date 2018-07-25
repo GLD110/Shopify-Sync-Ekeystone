@@ -5,6 +5,7 @@ class Order extends MY_Controller {
   public function __construct() {
     parent::__construct();
     $this->load->model( 'Order_model' );
+    $this->load->model( 'Product_model' );
 
     // Define the search values
     $this->_searchConf  = array(
@@ -41,6 +42,14 @@ class Order extends MY_Controller {
   public function index(){
       $this->is_logged_in();
 
+      /*$this->ShipOrderDropShip(
+        '10583', 4,
+        'Diana', '', 'Flora',
+        'GLD',
+        '1 Test Street', '', 'Los Angeles', 'CA', '90012-2607',
+        '02070537658', 'US', 'test123@gmail.com', '44257812255',
+        'test', '' );*/
+
       $this->manage();
   }
 
@@ -74,8 +83,6 @@ class Order extends MY_Controller {
     $data['query'] =  $this->Order_model->getList( $arrCondition );
     $data['total_count'] = sizeof($data['query']->result());//$this->Order_model->getTotalCount();
     $data['page'] = $page;
-
-      //var_dump($data['query']);exit;
 
     // Define the rendering data
     $data = $data + $this->setRenderData();
@@ -137,16 +144,19 @@ class Order extends MY_Controller {
     echo 'success';
   }
 
-  Public function ShipOrderDropShip( $sdk_key = '', $user_num = '',
+  Public function ShipOrderDropShip(
     $FullPartNo, $Quant,
     $DropShipFirstName, $DropShipMiddleInitial, $DropShipLastName,
     $DropShipCompany,
     $DropShipAddress1, $DropShipAddress2, $DropShipCity, $DropShipState, $DropShipPostalCode,
-    $DropShipPhone, $ropShipCountry, $DropShipEmail, $PONumber,
+    $DropShipPhone, $DropShipCountry, $DropShipEmail, $PONumber,
     $AdditionalInfo, $ServiceLevel )
   {
     $sdk_key = $this->config->item('EKEYSTONE_SDK_KEY');
     $user_num = $this->config->item('FULL_ACCOUNT_NUM');
+    $variant_info = $this->Product_model->getVariantFromSku( $FullPartNo );
+    var_dump($variant_info);exit;
+    $FullPartNo = $variant_info->VCPN;
 
     $url = "http://order.ekeystone.com/wselectronicorder/electronicorder.asmx";
      $soap_request = '<?xml version="1.0" encoding="utf-8"?>
@@ -155,23 +165,23 @@ class Order extends MY_Controller {
       <ShipOrderDropShip xmlns="http://eKeystone.com">
         <Key>' . $sdk_key . '</Key>
         <FullAccountNo>' . $user_num . '</FullAccountNo>
-        <FullPartNo>string</FullPartNo>
-        <Quant>string</Quant>
-        <DropShipFirstName>string</DropShipFirstName>
-        <DropShipMiddleInitial>string</DropShipMiddleInitial>
-        <DropShipLastName>string</DropShipLastName>
-        <DropShipCompany>string</DropShipCompany>
-        <DropShipAddress1>string</DropShipAddress1>
-        <DropShipAddress2>string</DropShipAddress2>
-        <DropShipCity>string</DropShipCity>
-        <DropShipState>string</DropShipState>
-        <DropShipPostalCode>string</DropShipPostalCode>
-        <DropShipPhone>string</DropShipPhone>
-        <DropShipCountry>string</DropShipCountry>
-        <DropShipEmail>string</DropShipEmail>
-        <PONumber>string</PONumber>
-        <AdditionalInfo>string</AdditionalInfo>
-        <ServiceLevel>string</ServiceLevel>
+        <FullPartNo>' . $FullPartNo . '</FullPartNo>
+        <Quant>' . $Quant . '</Quant>
+        <DropShipFirstName>' . $DropShipFirstName . '</DropShipFirstName>
+        <DropShipMiddleInitial>' . $DropShipMiddleInitial . '</DropShipMiddleInitial>
+        <DropShipLastName>' . $DropShipLastName . '</DropShipLastName>
+        <DropShipCompany>' . $DropShipCompany . '</DropShipCompany>
+        <DropShipAddress1>' . $DropShipAddress1 . '</DropShipAddress1>
+        <DropShipAddress2>' . $DropShipAddress2 . '</DropShipAddress2>
+        <DropShipCity>' . $DropShipCity . '</DropShipCity>
+        <DropShipState>' . $DropShipState . '</DropShipState>
+        <DropShipPostalCode>' . $DropShipPostalCode . '</DropShipPostalCode>
+        <DropShipPhone>' . $DropShipPhone . '</DropShipPhone>
+        <DropShipCountry>' . $DropShipCountry . '</DropShipCountry>
+        <DropShipEmail>' . $DropShipEmail . '</DropShipEmail>
+        <PONumber>' . $PONumber . '</PONumber>
+        <AdditionalInfo>' . $AdditionalInfo . '</AdditionalInfo>
+        <ServiceLevel>' . $ServiceLevel . '</ServiceLevel>
       </ShipOrderDropShip>
      </soap:Body>
      </soap:Envelope>';
@@ -187,8 +197,6 @@ class Order extends MY_Controller {
          "Content-length: ".strlen($soap_request),
      );
 
-     //var_dump(123456789);exit;
-
      $soap_do = curl_init();
      curl_setopt($soap_do, CURLOPT_URL,            $url );
      curl_setopt($soap_do, CURLOPT_RETURNTRANSFER, true );
@@ -197,120 +205,27 @@ class Order extends MY_Controller {
      curl_setopt($soap_do, CURLOPT_HTTPHEADER,     $header);
      $result = curl_exec($soap_do);
 
+     var_dump($result);exit;
+
      /*$result = '<?xml version="1.0" encoding="UTF-8"?>
                 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                    <soap:Body>
-                      <GetInventoryQuantityUpdatesResponse xmlns="http://eKeystone.com">
-                         <GetInventoryQuantityUpdatesResult>
-                            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="InventoryUpdates">
-                               <xs:element name="InventoryUpdates" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
-                                  <xs:complexType>
-                                     <xs:choice minOccurs="0" maxOccurs="unbounded">
-                                        <xs:element name="Table">
-                                           <xs:complexType>
-                                              <xs:sequence>
-                                                <xs:element name="VCPN" type="xs:string" />
-                                                <xs:element name="vencode" type="xs:string" minOccurs="0" />
-                                                <xs:element name="partnumber" type="xs:string" minOccurs="0" />
-                                                <xs:element name="totalqty" type="xs:int" minOccurs="0" />
-                                                <xs:element name="SOInv" type="xs:string" minOccurs="0" />
-                                                <xs:element name="MinToSell" type="xs:int" minOccurs="0" />
-                                                <xs:element name="ShippingFlag" type="xs:boolean" minOccurs="0" />
-                                                <xs:element name="CoreCharge" type="xs:decimal" minOccurs="0" />
-                                              </xs:sequence>
-                                              <xs:sequence>
-                                                 <xs:element name="VCPN" type="xs:string">VCPN</xs:element>
-                                                 <xs:element name="vencode" type="xs:string" minOccurs="0">vencode</xs:element>
-                                                 <xs:element name="partnumber" type="xs:string" minOccurs="0">ZON7103_GMC2500</xs:element>
-                                                 <xs:element name="totalqty" type="xs:int" minOccurs="0">2</xs:element>
-                                                 <xs:element name="SOInv" type="xs:string" minOccurs="0">SOInv</xs:element>
-                                                 <xs:element name="MinToSell" type="xs:int" minOccurs="0">MinToSell</xs:element>
-                                                 <xs:element name="ShippingFlag" type="xs:boolean" minOccurs="0">ShippingFlag</xs:element>
-                                                 <xs:element name="CoreCharge" type="xs:decimal" minOccurs="0">CoreCharge</xs:element>
-                                              </xs:sequence>
-                                              <xs:sequence>
-                                                 <xs:element name="VCPN" type="xs:string">VCPN</xs:element>
-                                                 <xs:element name="vencode" type="xs:string" minOccurs="0">vencode</xs:element>
-                                                 <xs:element name="partnumber" type="xs:string" minOccurs="0">ZON3103GMC2500</xs:element>
-                                                 <xs:element name="totalqty" type="xs:int" minOccurs="0">2</xs:element>
-                                                 <xs:element name="SOInv" type="xs:string" minOccurs="0">SOInv</xs:element>
-                                                 <xs:element name="MinToSell" type="xs:int" minOccurs="0">MinToSell</xs:element>
-                                                 <xs:element name="ShippingFlag" type="xs:boolean" minOccurs="0">ShippingFlag</xs:element>
-                                                 <xs:element name="CoreCharge" type="xs:decimal" minOccurs="0">CoreCharge</xs:element>
-                                              </xs:sequence>
-                                              <xs:sequence>
-                                                 <xs:element name="VCPN" type="xs:string">VCPN1</xs:element>
-                                                 <xs:element name="vencode" type="xs:string" minOccurs="0">vencode</xs:element>
-                                                 <xs:element name="partnumber" type="xs:string" minOccurs="0">ZON7103_GMC3500</xs:element>
-                                                 <xs:element name="totalqty" type="xs:int" minOccurs="0">2</xs:element>
-                                                 <xs:element name="SOInv" type="xs:string" minOccurs="0">SOInv</xs:element>
-                                                 <xs:element name="MinToSell" type="xs:int" minOccurs="0">MinToSell</xs:element>
-                                                 <xs:element name="ShippingFlag" type="xs:boolean" minOccurs="0">ShippingFlag</xs:element>
-                                                 <xs:element name="CoreCharge" type="xs:decimal" minOccurs="0">CoreCharge</xs:element>
-                                              </xs:sequence>
-                                           </xs:complexType>
-                                        </xs:element>
-                                     </xs:choice>
-                                  </xs:complexType>
-                                  <xs:unique name="Constraint1" msdata:PrimaryKey="true">
-                                     <xs:selector xpath=".//Table" />
-                                     <xs:field xpath="VCPN" />
-                                  </xs:unique>
-                               </xs:element>
-                            </xs:schema>
-                            <diffgr:diffgram xmlns:diffgr="urn:schemas-microsoft-com:xml-diffgram-v1" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" />
-                         </GetInventoryQuantityUpdatesResult>
-                      </GetInventoryQuantityUpdatesResponse>
+                   <ShipOrderDropShipResponse xmlns="http://eKeystone.com">
+                     <ShipOrderDropShipResult>string</ShipOrderDropShipResult>
+                   </ShipOrderDropShipResponse>
                    </soap:Body>
                 </soap:Envelope>';*/
 
      $xmlString = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $result);
      $xml = SimpleXML_Load_String($xmlString);
      $xml = new SimpleXMLElement($xml->asXML());
-     $array = $xml->soapBody->GetInventoryQuantityUpdatesResponse->GetInventoryQuantityUpdatesResult->xsschema->xselement->xscomplexType->xschoice->xselement->xscomplexType->xssequence;
+     $array = $xml->soapBody->ShipOrderDropShipResponse->ShipOrderDropShipResult;
 
      //var_dump($array);exit;
-
-     if(empty($shop))
-      $shop = $this->_default_store;
-
-     // Set the store information
-     $this->Product_model->rewriteParam( $shop );
-
-     $this->load->model( 'Shopify_model' );
-     $this->Shopify_model->setStore( $shop, $this->_arrStoreList[$shop]->app_id, $this->_arrStoreList[$shop]->app_secret );
-     $action = 'products.json';
-
-     foreach($array as $a)
-     {
-        if(is_numeric((string)$a->xselement[3]))
-        {
-          $partnumber = (string)$a->xselement[2];
-          $totalqty = (string)$a->xselement[3];
-          $variant_info = $this->Product_model->getVariantFromSku($partnumber);
-          $product_id = $variant_info->product_id;
-          $variant_id = $variant_info->variant_id;
-          $products_array = array(
-              'product' => array(
-                  'id' => $product_id,
-                  'variants' => array(
-                    array(
-                      "id" => $variant_id,
-                      "inventory_quantity" => $totalqty,
-                      "inventory_management" => 'shopify'
-                    )
-                  )
-              )
-          );
-
-          // Retrive Data from Shop
-          $action = 'products/' . $product_id . '.json';
-          $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
-        }
-     }
+     echo $array;
 
      $this->load->model( 'Log_model' );
-     $this->Log_model->add('CronJob', 'GetInventoryQuantityUpdates', '---', $shop);
+     $this->Log_model->add('CronJob', 'ShipOrderDropShip', '$PONumber', $array);
 
   }
 }

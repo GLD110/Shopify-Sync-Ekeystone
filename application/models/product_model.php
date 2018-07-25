@@ -140,10 +140,10 @@ class Product_model extends Master_model
         }
 
         // Remove the existing product
-        if( in_array( '_' . $variant->id, array_keys( $this->_arrProductKey )))
+        /*if( in_array( '_' . $variant->id, array_keys( $this->_arrProductKey )))
         {
           $this->delete( $this->_arrProductKey[ '_' . $variant->id ] );
-        }
+        }*/
 
         // Add the new variant
         $newProductInfo = array(
@@ -162,9 +162,38 @@ class Product_model extends Master_model
           'qty' => $variant->inventory_quantity,
           'image_url' => $image_url,
           'data' => base64_encode( json_encode( $variant ) ),
+          'VCPN' => '',
         );
 
-        parent::add( $newProductInfo );
+        $updateProductInfo = array(
+          'title' => $product->title,
+          'variant_title' => $variant->title,
+          'product_id' => $product->id,
+          'variant_id' => $variant->id,
+          'sku' => $variant->sku,
+          'body_html' => base64_encode($product->body_html),
+          'categories' => implode( ',', $product->categories ),
+          'handle' => $product->handle,
+          'price' => $variant->price,
+          'position' => $variant->position,
+          'updated_at' => $variant->updated_at,
+          'is_exist' => 1,
+          'qty' => $variant->inventory_quantity,
+          'image_url' => $image_url,
+          'data' => base64_encode( json_encode( $variant ) ),
+        );
+
+        $query = parent::getList('variant_id = \'' . $variant->id . '\'' );
+        if($query->num_rows() == 0){
+            parent::add( $newProductInfo );
+        }
+        else
+        {
+            $old_array = $query->result();
+            $old_order = $old_array[0];
+            $id = $old_order->id;
+            parent::update( $id, $updateProductInfo );
+        }
       }
     }
 
@@ -226,6 +255,36 @@ class Product_model extends Master_model
       }
 
       return $return;
+    }
+
+    // Get variant from SKU
+    public function getVariantFromVCPN( $VCPN )
+    {
+      $return = '';
+
+      $query = $this->getList( array( 'VCPN' => $VCPN ) );
+
+      if( $query->num_rows() > 0 )
+      foreach( $query->result() as $row )
+      {
+        $return = $row;
+      }
+
+      return $return;
+    }
+
+    //Update VCPN per a days
+    public function updateQtyandVCPN($sku, $qty, $VCPN){
+      $query = $this->getList( array( 'sku' => $sku ) );
+      $data = array( 'qty'=>$qty, 'VCPN'=>$VCPN );
+      if($query->num_rows() > 0)
+      {
+          $old_array = $query->result();
+          $old_order = $old_array[0];
+          $id = $old_order->id;
+          parent::update( $id, $data );
+      }
+      return true;
     }
     // ********************** //
 }

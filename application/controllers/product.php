@@ -73,6 +73,89 @@ class Product extends MY_Controller {
         case 'item_per_square' : $data['item_per_square'] = str_replace( ',', '.', $this->input->post('value') ); break;
     }
     $this->Product_model->update( $pk, $data );
+  }  
+
+  Public function GetInventoryQuantityFull()
+  {
+    $sdk_key = $this->config->item('EKEYSTONE_SDK_KEY');
+    $user_num = $this->config->item('FULL_ACCOUNT_NUM');
+
+    $url = "http://order.ekeystone.com/wselectronicorder/electronicorder.asmx";
+     $soap_request = '<?xml version="1.0" encoding="utf-8"?>
+     <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+     <soap:Body>
+     <GetInventoryQuantityFull xmlns="http://eKeystone.com">
+       <Key>' . $sdk_key . '</Key>
+       <FullAccountNo>' . $user_num . '</FullAccountNo>
+     </GetInventoryQuantityFull>
+     </soap:Body>
+     </soap:Envelope>';
+
+     $header = array(
+         "POST /wselectronicorder/electronicorder.asmx HTTP/1.1",
+         "Host: order.ekeystone.com",
+         "Content-type: text/xml;charset=\"utf-8\"",
+         "Accept: text/xml",
+         "Cache-Control: no-cache",
+         "Pragma: no-cache",
+         "SOAPAction: \"http://eKeystone.com/GetInventoryQuantityFull\"",
+         "Content-length: ".strlen($soap_request),
+     );
+
+     $soap_do = curl_init();
+     curl_setopt($soap_do, CURLOPT_URL,            $url );
+     curl_setopt($soap_do, CURLOPT_RETURNTRANSFER, true );
+     curl_setopt($soap_do, CURLOPT_POST,           true );
+     curl_setopt($soap_do, CURLOPT_POSTFIELDS,     $soap_request);
+     curl_setopt($soap_do, CURLOPT_HTTPHEADER,     $header);
+     $result = curl_exec($soap_do);
+
+     $xmlString = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $result);
+     $xml = SimpleXML_Load_String($xmlString);
+     $xml = new SimpleXMLElement($xml->asXML());
+     $array = $xml->soapBody->GetInventoryQuantityFullResponse->GetInventoryQuantityFullResult->diffgrdiffgram->InventoryFull;
+
+     if(empty($shop))
+      $shop = $this->_default_store;
+
+     // Set the store information
+     $this->Product_model->rewriteParam( $shop );
+
+     $this->load->model( 'Shopify_model' );
+     $this->Shopify_model->setStore( $shop, $this->_arrStoreList[$shop]->app_id, $this->_arrStoreList[$shop]->app_secret );
+     $action = 'products.json';
+
+     foreach($array->dtPartsData as $a)
+     {
+        $sku = (string)$a->ManufacturerProductNo;
+        $totalqty = (string)$a->TotalQty;
+        $variant_info = $this->Product_model->getVariantFromSku($sku);
+        $this->Product_model->updateQtyandVCPN($sku, $totalqty, (string)$a->VCPN);
+        if($variant_info){
+        $product_id = $variant_info->product_id;
+        $variant_id = $variant_info->variant_id;
+        $products_array = array(
+            'product' => array(
+                'id' => $product_id,
+                'variants' => array(
+                  array(
+                    "id" => $variant_id,
+                    "inventory_quantity" => $totalqty,
+                    "inventory_management" => 'shopify'
+                  )
+                )
+            )
+        );
+
+        // Retrive Data from Shop
+        $action = 'products/' . $product_id . '.json';
+        $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
+      }
+     }
+
+     $this->load->model( 'Log_model' );
+     $this->Log_model->add('CronJob', 'GetInventoryQuantityFull', '---', $shop);
+
   }
 
   Public function GetInventoryQuantityUpdates()
@@ -101,8 +184,6 @@ class Product extends MY_Controller {
          "SOAPAction: \"http://eKeystone.com/GetInventoryQuantityUpdates\"",
          "Content-length: ".strlen($soap_request),
      );
-
-     //var_dump(123456789);exit;
 
      $soap_do = curl_init();
      curl_setopt($soap_do, CURLOPT_URL,            $url );
@@ -133,36 +214,6 @@ class Product extends MY_Controller {
                                                 <xs:element name="ShippingFlag" type="xs:boolean" minOccurs="0" />
                                                 <xs:element name="CoreCharge" type="xs:decimal" minOccurs="0" />
                                               </xs:sequence>
-                                              <xs:sequence>
-                                                 <xs:element name="VCPN" type="xs:string">VCPN</xs:element>
-                                                 <xs:element name="vencode" type="xs:string" minOccurs="0">vencode</xs:element>
-                                                 <xs:element name="partnumber" type="xs:string" minOccurs="0">ZON7103_GMC2500</xs:element>
-                                                 <xs:element name="totalqty" type="xs:int" minOccurs="0">2</xs:element>
-                                                 <xs:element name="SOInv" type="xs:string" minOccurs="0">SOInv</xs:element>
-                                                 <xs:element name="MinToSell" type="xs:int" minOccurs="0">MinToSell</xs:element>
-                                                 <xs:element name="ShippingFlag" type="xs:boolean" minOccurs="0">ShippingFlag</xs:element>
-                                                 <xs:element name="CoreCharge" type="xs:decimal" minOccurs="0">CoreCharge</xs:element>
-                                              </xs:sequence>
-                                              <xs:sequence>
-                                                 <xs:element name="VCPN" type="xs:string">VCPN</xs:element>
-                                                 <xs:element name="vencode" type="xs:string" minOccurs="0">vencode</xs:element>
-                                                 <xs:element name="partnumber" type="xs:string" minOccurs="0">ZON3103GMC2500</xs:element>
-                                                 <xs:element name="totalqty" type="xs:int" minOccurs="0">2</xs:element>
-                                                 <xs:element name="SOInv" type="xs:string" minOccurs="0">SOInv</xs:element>
-                                                 <xs:element name="MinToSell" type="xs:int" minOccurs="0">MinToSell</xs:element>
-                                                 <xs:element name="ShippingFlag" type="xs:boolean" minOccurs="0">ShippingFlag</xs:element>
-                                                 <xs:element name="CoreCharge" type="xs:decimal" minOccurs="0">CoreCharge</xs:element>
-                                              </xs:sequence>
-                                              <xs:sequence>
-                                                 <xs:element name="VCPN" type="xs:string">VCPN1</xs:element>
-                                                 <xs:element name="vencode" type="xs:string" minOccurs="0">vencode</xs:element>
-                                                 <xs:element name="partnumber" type="xs:string" minOccurs="0">ZON7103_GMC3500</xs:element>
-                                                 <xs:element name="totalqty" type="xs:int" minOccurs="0">2</xs:element>
-                                                 <xs:element name="SOInv" type="xs:string" minOccurs="0">SOInv</xs:element>
-                                                 <xs:element name="MinToSell" type="xs:int" minOccurs="0">MinToSell</xs:element>
-                                                 <xs:element name="ShippingFlag" type="xs:boolean" minOccurs="0">ShippingFlag</xs:element>
-                                                 <xs:element name="CoreCharge" type="xs:decimal" minOccurs="0">CoreCharge</xs:element>
-                                              </xs:sequence>
                                            </xs:complexType>
                                         </xs:element>
                                      </xs:choice>
@@ -182,9 +233,7 @@ class Product extends MY_Controller {
      $xmlString = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $result);
      $xml = SimpleXML_Load_String($xmlString);
      $xml = new SimpleXMLElement($xml->asXML());
-     $array = $xml->soapBody->GetInventoryQuantityUpdatesResponse->GetInventoryQuantityUpdatesResult->xsschema->xselement->xscomplexType->xschoice->xselement->xscomplexType->xssequence;
-
-     //var_dump($array);exit;
+     $array = $xml->soapBody->GetInventoryQuantityUpdatesResponse->GetInventoryQuantityUpdatesResult->diffgrdiffgram->InventoryUpdates;
 
      if(empty($shop))
       $shop = $this->_default_store;
@@ -196,13 +245,14 @@ class Product extends MY_Controller {
      $this->Shopify_model->setStore( $shop, $this->_arrStoreList[$shop]->app_id, $this->_arrStoreList[$shop]->app_secret );
      $action = 'products.json';
 
-     foreach($array as $a)
-     {
-        if(is_numeric((string)$a->xselement[3]))
-        {
-          $partnumber = (string)$a->xselement[2];
-          $totalqty = (string)$a->xselement[3];
-          $variant_info = $this->Product_model->getVariantFromSku($partnumber);
+     if($array){
+       foreach($array->Table as $a)
+       {
+          $VCPN = (string)$a->VCPN;
+          $totalqty = (string)$a->TotalQty;
+          $variant_info = $this->Product_model->getVariantFromVCPN($VCPN);
+          //$this->Product_model->updateQtyandVCPN((string)$a->ManufacturerProductNo, $totalqty, $VCPN);
+          if($variant_info){
           $product_id = $variant_info->product_id;
           $variant_id = $variant_info->variant_id;
           $products_array = array(
@@ -222,7 +272,8 @@ class Product extends MY_Controller {
           $action = 'products/' . $product_id . '.json';
           $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
         }
-     }
+       }
+      }
 
      $this->load->model( 'Log_model' );
      $this->Log_model->add('CronJob', 'GetInventoryQuantityUpdates', '---', $shop);
