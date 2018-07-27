@@ -115,7 +115,7 @@ class Product extends MY_Controller {
      $xml = new SimpleXMLElement($xml->asXML());
      $array = $xml->soapBody->GetInventoryQuantityFullResponse->GetInventoryQuantityFullResult->diffgrdiffgram->InventoryFull;
 
-     //printf($result);exit;
+     //var_dump($array);exit;
 
      if(empty($shop))
       $shop = $this->_default_store;
