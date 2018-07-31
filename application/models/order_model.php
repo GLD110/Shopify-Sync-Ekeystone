@@ -61,7 +61,7 @@ class Order_model extends Master_model
         $where['shop'] = $this->_shop;
         if( !empty( $arrCondition['customer_name'] ) ) $where["customer_name LIKE '%" . str_replace( "'", "\\'", $arrCondition['customer_name'] ) . "%'"] = '';
         if( !empty( $arrCondition['order_name'] ) ) $where["order_name LIKE '%" . str_replace( "'", "\\'", $arrCondition['order_name'] ) . "%'"] = '';
-        if( !empty( $arrCondition['created_at'] ) ) $where["created_at LIKE '" . str_replace( "'", "\\'", $arrCondition['created_at'] ) . "%'"] = '';
+        //if( !empty( $arrCondition['created_at'] ) ) $where["created_at LIKE '" . str_replace( "'", "\\'", $arrCondition['created_at'] ) . "%'"] = '';
 
         // Select fields
         $select = !empty( $arrCondition['is_all'] ) ? '*' : "id, order_id, order_name, email, created_at, customer_name, amount, fulfillment_status, num_products, country, product_name, financial_status, sku, ekey_feedback";

@@ -230,7 +230,8 @@ class Product_model extends Master_model
     {
       $return = '';
 
-      $query = parent::getList( 'sku = \'' . $sku . '\'' . ' AND VCPN != \'' . '' . '\'');
+      //$query = parent::getList( 'sku = \'' . $sku . '\'' . ' AND VCPN != \'' . '' . '\'');
+      $query = parent::getList( 'sku = \'' . $sku . '\'');
 
       if( $query->num_rows() > 0 )
       foreach( $query->result() as $row )
@@ -246,7 +247,8 @@ class Product_model extends Master_model
     {
       $return = '';
 
-      $query = parent::getList( 'sku = \'' . $sku . '\'' . ' AND VCPN != \'' . '' . '\'');
+      //$query = parent::getList( 'sku = \'' . $sku . '\'' . ' AND VCPN != \'' . '' . '\'');
+      $query = parent::getList( 'sku = \'' . $sku . '\'');
 
       if( $query->num_rows() > 0 )
       foreach( $query->result() as $row )

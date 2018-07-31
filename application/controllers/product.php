@@ -243,6 +243,8 @@ class Product extends MY_Controller {
      $xml = new SimpleXMLElement($xml->asXML());
      $array = $xml->soapBody->GetInventoryQuantityUpdatesResponse->GetInventoryQuantityUpdatesResult->diffgrdiffgram->InventoryUpdates;
 
+     //printf($result);exit;
+
      if(empty($shop))
       $shop = $this->_default_store;
 
@@ -252,14 +254,17 @@ class Product extends MY_Controller {
      $this->load->model( 'Shopify_model' );
      $this->Shopify_model->setStore( $shop, $this->_arrStoreList[$shop]->app_id, $this->_arrStoreList[$shop]->app_secret );
      $action = 'products.json';
+     $count_updated = 0;
 
      if($array){
+       $count_updated = sizeof($array->Table);
        foreach($array->Table as $a)
        {
           $VCPN = (string)$a->VCPN;
           $totalqty = (string)$a->TotalQty;
-          $variant_info = $this->Product_model->getVariantFromVCPN($VCPN);
-          //$this->Product_model->updateQtyandVCPN((string)$a->ManufacturerProductNo, $totalqty, $VCPN);
+          //$variant_info = $this->Product_model->getVariantFromVCPN($VCPN);
+          $variant_info = $this->Product_model->getVariantFromSku($sku);
+          $this->Product_model->updateQtyandVCPN((string)$a->ManufacturerProductNo, $totalqty, $VCPN);
           if($variant_info){
           $product_id = $variant_info->product_id;
           $variant_id = $variant_info->variant_id;
@@ -284,7 +289,7 @@ class Product extends MY_Controller {
       }
 
      $this->load->model( 'Log_model' );
-     $this->Log_model->add('CronJob', 'GetInventoryQuantityUpdates', '---', $shop);
+     $this->Log_model->add('CronJob', 'GetInventoryQuantityUpdates', $count_updated . ' products had been updated.', $shop);
 
   }
 
