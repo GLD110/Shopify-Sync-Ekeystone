@@ -133,26 +133,26 @@ class Product extends MY_Controller {
           $sku = (string)$a->ManufacturerProductNo;
           $totalqty = (string)$a->TotalQty;
           $variant_info = $this->Product_model->getVariantFromSku($sku);
-          $this->Product_model->updateQtyandVCPN($sku, $totalqty, (string)$a->VCPN);
           if($variant_info){
-          $product_id = $variant_info->product_id;
-          $variant_id = $variant_info->variant_id;
-          $products_array = array(
-              'product' => array(
-                  'id' => $product_id,
-                  'variants' => array(
-                    array(
-                      "id" => $variant_id,
-                      "inventory_quantity" => $totalqty,
-                      "inventory_management" => 'shopify'
+            $this->Product_model->updateQtyandVCPN($sku, $totalqty, (string)$a->VCPN);
+            $product_id = $variant_info->product_id;
+            $variant_id = $variant_info->variant_id;
+            $products_array = array(
+                'product' => array(
+                    'id' => $product_id,
+                    'variants' => array(
+                      array(
+                        "id" => $variant_id,
+                        "inventory_quantity" => $totalqty,
+                        "inventory_management" => 'shopify'
+                      )
                     )
-                  )
-              )
-          );
+                )
+            );
 
-          // Retrive Data from Shop
-          $action = 'products/' . $product_id . '.json';
-          $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
+            // Retrive Data from Shop
+            $action = 'products/' . $product_id . '.json';
+            $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
         }
        }
      }
@@ -257,33 +257,35 @@ class Product extends MY_Controller {
      $count_updated = 0;
 
      if($array){
-       $count_updated = sizeof($array->Table);
        foreach($array->Table as $a)
        {
           $VCPN = (string)$a->VCPN;
           $totalqty = (string)$a->TotalQty;
+          $sku = (string)$a->ManufacturerProductNo;
           //$variant_info = $this->Product_model->getVariantFromVCPN($VCPN);
           $variant_info = $this->Product_model->getVariantFromSku($sku);
-          $this->Product_model->updateQtyandVCPN((string)$a->ManufacturerProductNo, $totalqty, $VCPN);
           if($variant_info){
-          $product_id = $variant_info->product_id;
-          $variant_id = $variant_info->variant_id;
-          $products_array = array(
-              'product' => array(
-                  'id' => $product_id,
-                  'variants' => array(
-                    array(
-                      "id" => $variant_id,
-                      "inventory_quantity" => $totalqty,
-                      "inventory_management" => 'shopify'
-                    )
-                  )
-              )
-          );
+            $this->Product_model->updateQtyandVCPN($sku, $totalqty, $VCPN);
+            $count_updated = $count_updated + 1;
 
-          // Retrive Data from Shop
-          $action = 'products/' . $product_id . '.json';
-          $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
+            $product_id = $variant_info->product_id;
+            $variant_id = $variant_info->variant_id;
+            $products_array = array(
+                'product' => array(
+                    'id' => $product_id,
+                    'variants' => array(
+                      array(
+                        "id" => $variant_id,
+                        "inventory_quantity" => $totalqty,
+                        "inventory_management" => 'shopify'
+                      )
+                    )
+                )
+            );
+
+            // Retrive Data from Shop
+            $action = 'products/' . $product_id . '.json';
+            $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
         }
        }
       }
