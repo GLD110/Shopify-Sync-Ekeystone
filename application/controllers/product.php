@@ -8,23 +8,6 @@ class Product extends MY_Controller {
     $this->load->model( 'Sku_model' );
     $this->load->model( 'Shopify_model' );
 
-    $file= $this->config->item("app_path") . "error_log.txt";
-    $handle = fopen($file, "r");
-    $contents = fread($handle,filesize($file));
-    $time_start1 = microtime(true);
-    $array1 = unpack("s*", $contents);
-    $time_end1 = microtime(true);
-    $execution_time1 = $time_end1 - $time_start1;
-    var_dump($execution_time1);
-    var_dump($array1);
-
-    $time_start2 = microtime(true);
-    $array2 = unpack("s*", file_get_contents($file, true));
-    $time_end2 = microtime(true);
-    $execution_time2 = $time_end2 - $time_start2;
-    var_dump($execution_time2);
-    var_dump($array2);exit;
-
     // Define the search values
     $this->_searchConf  = array(
       'name' => '',
@@ -132,7 +115,7 @@ class Product extends MY_Controller {
      $xml = new SimpleXMLElement($xml->asXML());
      $array = $xml->soapBody->GetInventoryQuantityFullResponse->GetInventoryQuantityFullResult->diffgrdiffgram->InventoryFull;
 
-     //var_dump($array);exit;
+     var_dump($array);
 
      if(empty($shop))
       $shop = $this->_default_store;
@@ -168,8 +151,8 @@ class Product extends MY_Controller {
             );
 
             // Retrive Data from Shop
-            $action = 'products/' . $product_id . '.json';
-            $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
+            //$action = 'products/' . $product_id . '.json';
+            //$productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
         }
        }
      }
