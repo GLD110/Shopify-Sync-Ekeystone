@@ -171,6 +171,7 @@ class Product_model extends Master_model
           'product_id' => $product->id,
           'variant_id' => $variant->id,
           'sku' => $variant->sku,
+          'VCPN' => $variant->sku,
           'body_html' => base64_encode($product->body_html),
           'categories' => implode( ',', $product->categories ),
           'handle' => $product->handle,
@@ -276,9 +277,9 @@ class Product_model extends Master_model
     }
 
     //Update VCPN per a days
-    public function updateQtyandVCPN($sku, $qty, $VCPN){
-      $query = parent::getList( 'sku = \'' . $sku . '\'');
-      $data = array( 'qty'=>$qty, 'VCPN'=>$VCPN );
+    public function updateQtyFromVCPN($qty, $VCPN){
+      $query = parent::getList( 'VCPN = \'' . $VCPN . '\'');
+      $data = array( 'qty'=>$qty );
       if($query->num_rows() > 0)
       {
           $old_array = $query->result();
@@ -287,6 +288,14 @@ class Product_model extends Master_model
           parent::update( $id, $data );
       }
       return true;
+    }
+
+    // Get variant from SKU
+    public function getNoImageProducts()
+    {
+      $query = $this->db->query("SELECT * FROM `product` WHERE `image_url` = ''");
+
+      return $query->result();
     }
     // ********************** //
 }

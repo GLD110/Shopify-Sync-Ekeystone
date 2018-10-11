@@ -61,6 +61,23 @@ class Product extends MY_Controller {
     $this->load->view('view_footer');
   }
 
+  public function deleteNoImageProducts(){
+    // Check the login
+    $this->is_logged_in();
+
+    // Get data
+    $this->Product_model->rewriteParam($this->_searchVal['shop']);
+    $no_image_products =  $this->Product_model->getNoImageProducts();
+
+    //var_dump($no_image_products);exit;
+
+    foreach($no_image_products as $nop){
+      $action = 'products/' . $nop->product_id . '.json';
+      $this->Shopify_model->accessAPI( $action, '','DELETE');
+      echo 'Deleted: ' . $nop->product_id;
+    }
+  }
+
   public function update( $type, $pk )
   {
     $data = array();
@@ -130,11 +147,13 @@ class Product extends MY_Controller {
      if($array){
        foreach($array->dtPartsData as $a)
        {
-          $sku = (string)$a->ManufacturerProductNo;
+          $VCPN = (string)$a->VCPN;
           $totalqty = (string)$a->TotalQty;
-          $variant_info = $this->Product_model->getVariantFromSku($sku);
+          $sku = (string)$a->ManufacturerProductNo;
+          $variant_info = $this->Product_model->getVariantFromVCPN($VCPN);
+          //$variant_info = $this->Product_model->getVariantFromSku($sku);
           if($variant_info){
-            $this->Product_model->updateQtyandVCPN($sku, $totalqty, (string)$a->VCPN);
+            $this->Product_model->updateQtyFromVCPN($totalqty, $VCPN);
             $product_id = $variant_info->product_id;
             $variant_id = $variant_info->variant_id;
             $products_array = array(
@@ -173,12 +192,12 @@ class Product extends MY_Controller {
      $soap_request = '<?xml version="1.0" encoding="utf-8"?>
      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
      <soap:Body>
-     <GetInventoryQuantityFull xmlns="http://eKeystone.com">
+     <GetImagePartInformation xmlns="http://eKeystone.com">
        <Key>' . $sdk_key . '</Key>
        <FullAccountNo>' . $user_num . '</FullAccountNo>
-       <PartNumbers>' . '' .'</PartNumbers>
-       <ImageSize>' . '' . '</ImageSize>
-     </GetInventoryQuantityFull>
+       <PartNumbers>' . 'A1310583' .'</PartNumbers>
+       <ImageSize>' . 'Default' . '</ImageSize>
+     </GetImagePartInformation>
      </soap:Body>
      </soap:Envelope>';
 
@@ -206,7 +225,7 @@ class Product extends MY_Controller {
      $xml = new SimpleXMLElement($xml->asXML());
      $array = $xml->soapBody->GetImagePartInformationResponse;
 
-     var_dump($array);
+     printf($result);exit;
 
      if(empty($shop))
       $shop = $this->_default_store;
@@ -221,7 +240,7 @@ class Product extends MY_Controller {
      if($array){
        foreach($array->dtPartsData as $a)
        {
-          $sku = (string)$a->ManufacturerProductNo;
+          $sku = (string)$a->V;
           $totalqty = (string)$a->TotalQty;
           $variant_info = $this->Product_model->getVariantFromSku($sku);
           if($variant_info){
@@ -353,8 +372,8 @@ class Product extends MY_Controller {
           $VCPN = (string)$a->VCPN;
           $totalqty = (string)$a->TotalQty;
           $sku = (string)$a->ManufacturerProductNo;
-          //$variant_info = $this->Product_model->getVariantFromVCPN($VCPN);
-          $variant_info = $this->Product_model->getVariantFromSku($sku);
+          $variant_info = $this->Product_model->getVariantFromVCPN($VCPN);
+          //$variant_info = $this->Product_model->getVariantFromSku($sku);
           if($variant_info){
             $this->Product_model->updateQtyandVCPN($sku, $totalqty, $VCPN);
             $count_updated = $count_updated + 1;
@@ -428,6 +447,10 @@ class Product extends MY_Controller {
       foreach( $productInfo->products as $product )
       {
         $this->Process_model->product_create( $product, $this->_arrStoreList[$shop] );
+        if(sizeof($product->images) == 0){
+          $action1 = 'products/' . $product->id . '.json';
+          $this->Shopify_model->accessAPI( $action1, '','DELETE');
+        }
       }
     }
 
@@ -442,7 +465,7 @@ class Product extends MY_Controller {
       $page ++;
     }
 
-    $this->Log_model->add('CronJob', 'Product Sync', $last_day, $shop);
+    //$this->Log_model->add('CronJob', 'Product Sync', $last_day, $shop);
 
     if( $count == 0 )
       echo 'success';
