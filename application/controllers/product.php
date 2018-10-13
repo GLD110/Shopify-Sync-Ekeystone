@@ -132,7 +132,7 @@ class Product extends MY_Controller {
      $xml = new SimpleXMLElement($xml->asXML());
      $array = $xml->soapBody->GetInventoryQuantityFullResponse->GetInventoryQuantityFullResult->diffgrdiffgram->InventoryFull;
 
-     var_dump($array);
+     //var_dump($array->dtPartsData[0]);exit;
 
      if(empty($shop))
       $shop = $this->_default_store;
@@ -149,7 +149,7 @@ class Product extends MY_Controller {
        {
           $VCPN = (string)$a->VCPN;
           $totalqty = (string)$a->TotalQty;
-          $sku = (string)$a->ManufacturerProductNo;
+          $sku = (string)$a->VCPN;
           $variant_info = $this->Product_model->getVariantFromVCPN($VCPN);
           //$variant_info = $this->Product_model->getVariantFromSku($sku);
           if($variant_info){
@@ -170,99 +170,8 @@ class Product extends MY_Controller {
             );
 
             // Retrive Data from Shop
-            //$action = 'products/' . $product_id . '.json';
-            //$productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
-        }
-       }
-     }
-
-     $this->load->model( 'Log_model' );
-     $this->Log_model->add('CronJob', 'GetInventoryQuantityFull', '---', $shop);
-
-     return 'success';
-
-  }
-
-  Public function GetImagePartInformation()
-  {
-    $sdk_key = $this->config->item('EKEYSTONE_SDK_KEY');
-    $user_num = $this->config->item('FULL_ACCOUNT_NUM');
-
-    $url = "http://order.ekeystone.com/wselectronicorder/electronicorder.asmx";
-     $soap_request = '<?xml version="1.0" encoding="utf-8"?>
-     <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-     <soap:Body>
-     <GetImagePartInformation xmlns="http://eKeystone.com">
-       <Key>' . $sdk_key . '</Key>
-       <FullAccountNo>' . $user_num . '</FullAccountNo>
-       <PartNumbers>' . 'A1310583' .'</PartNumbers>
-       <ImageSize>' . 'Default' . '</ImageSize>
-     </GetImagePartInformation>
-     </soap:Body>
-     </soap:Envelope>';
-
-     $header = array(
-         "POST /wselectronicorder/electronicorder.asmx HTTP/1.1",
-         "Host: order.ekeystone.com",
-         "Content-type: text/xml;charset=\"utf-8\"",
-         "Accept: text/xml",
-         "Cache-Control: no-cache",
-         "Pragma: no-cache",
-         "SOAPAction: \"http://eKeystone.com/GetImagePartInformation\"",
-         "Content-length: ".strlen($soap_request),
-     );
-
-     $soap_do = curl_init();
-     curl_setopt($soap_do, CURLOPT_URL,            $url );
-     curl_setopt($soap_do, CURLOPT_RETURNTRANSFER, true );
-     curl_setopt($soap_do, CURLOPT_POST,           true );
-     curl_setopt($soap_do, CURLOPT_POSTFIELDS,     $soap_request);
-     curl_setopt($soap_do, CURLOPT_HTTPHEADER,     $header);
-     $result = curl_exec($soap_do);
-
-     $xmlString = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $result);
-     $xml = SimpleXML_Load_String($xmlString);
-     $xml = new SimpleXMLElement($xml->asXML());
-     $array = $xml->soapBody->GetImagePartInformationResponse;
-
-     printf($result);exit;
-
-     if(empty($shop))
-      $shop = $this->_default_store;
-
-     // Set the store information
-     $this->Product_model->rewriteParam( $shop );
-
-     $this->load->model( 'Shopify_model' );
-     $this->Shopify_model->setStore( $shop, $this->_arrStoreList[$shop]->app_id, $this->_arrStoreList[$shop]->app_secret );
-     $action = 'products.json';
-
-     if($array){
-       foreach($array->dtPartsData as $a)
-       {
-          $sku = (string)$a->V;
-          $totalqty = (string)$a->TotalQty;
-          $variant_info = $this->Product_model->getVariantFromSku($sku);
-          if($variant_info){
-            $this->Product_model->updateQtyandVCPN($sku, $totalqty, (string)$a->VCPN);
-            $product_id = $variant_info->product_id;
-            $variant_id = $variant_info->variant_id;
-            $products_array = array(
-                'product' => array(
-                    'id' => $product_id,
-                    'variants' => array(
-                      array(
-                        "id" => $variant_id,
-                        "inventory_quantity" => $totalqty,
-                        "inventory_management" => 'shopify'
-                      )
-                    )
-                )
-            );
-
-            // Retrive Data from Shop
-            //$action = 'products/' . $product_id . '.json';
-            //$productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
+            $action = 'products/' . $product_id . '.json';
+            $productInfo = $this->Shopify_model->accessAPI( $action, $products_array, 'PUT' );
         }
        }
      }
@@ -309,8 +218,6 @@ class Product extends MY_Controller {
      curl_setopt($soap_do, CURLOPT_HTTPHEADER,     $header);
      $result = curl_exec($soap_do);
 
-     //var_dump($result);exit;
-
      /*$result = '<?xml version="1.0" encoding="UTF-8"?>
                 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                    <soap:Body>
@@ -353,7 +260,7 @@ class Product extends MY_Controller {
      $xml = new SimpleXMLElement($xml->asXML());
      $array = $xml->soapBody->GetInventoryQuantityUpdatesResponse->GetInventoryQuantityUpdatesResult->diffgrdiffgram->InventoryUpdates;
 
-     printf($result);exit;
+     //var_dump($result);exit;
 
      if(empty($shop))
       $shop = $this->_default_store;
@@ -371,11 +278,11 @@ class Product extends MY_Controller {
        {
           $VCPN = (string)$a->VCPN;
           $totalqty = (string)$a->TotalQty;
-          $sku = (string)$a->ManufacturerProductNo;
+          $sku = (string)$a->VCPN;
           $variant_info = $this->Product_model->getVariantFromVCPN($VCPN);
           //$variant_info = $this->Product_model->getVariantFromSku($sku);
           if($variant_info){
-            $this->Product_model->updateQtyandVCPN($sku, $totalqty, $VCPN);
+            $this->Product_model->updateQtyFromVCPN($totalqty, $VCPN);
             $count_updated = $count_updated + 1;
 
             $product_id = $variant_info->product_id;
@@ -447,10 +354,10 @@ class Product extends MY_Controller {
       foreach( $productInfo->products as $product )
       {
         $this->Process_model->product_create( $product, $this->_arrStoreList[$shop] );
-        if(sizeof($product->images) == 0){
+        /*if(sizeof($product->images) == 0){
           $action1 = 'products/' . $product->id . '.json';
           $this->Shopify_model->accessAPI( $action1, '','DELETE');
-        }
+        }*/
       }
     }
 
@@ -465,7 +372,7 @@ class Product extends MY_Controller {
       $page ++;
     }
 
-    //$this->Log_model->add('CronJob', 'Product Sync', $last_day, $shop);
+    $this->Log_model->add('CronJob', 'Product Sync', $last_day, $shop);
 
     if( $count == 0 )
       echo 'success';

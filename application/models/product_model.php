@@ -152,6 +152,7 @@ class Product_model extends Master_model
           'product_id' => $product->id,
           'variant_id' => $variant->id,
           'sku' => $variant->sku,
+          'VCPN' => $variant->sku,
           'body_html' => base64_encode($product->body_html),
           'categories' => implode( ',', $product->categories ),
           'handle' => $product->handle,
@@ -162,7 +163,6 @@ class Product_model extends Master_model
           'qty' => $variant->inventory_quantity,
           'image_url' => $image_url,
           'data' => base64_encode( json_encode( $variant ) ),
-          'VCPN' => '',
         );
 
         $updateProductInfo = array(
